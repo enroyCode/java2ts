@@ -10,9 +10,20 @@ https://gitee.com/enroy/java2ts.git[github]
 
 https://gitee.com/enroy/java2ts.git[gitee]
 
-== 使用说明
+== quickStart
 
 提供dmeo工程 `java2ts-sampler` 启动后运行 `src/resources` 目录下的 `download.http` 文件即可生成前端模型代码。
+
+== 依赖
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.enroy</groupId>
+    <artifactId>java2ts-spring-boot-starter</artifactId>
+    <version>${java2ts-spring-boot-starter.version}</version>
+</dependency>
+----
 
 == 配置说明
 
