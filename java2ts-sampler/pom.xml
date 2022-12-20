@@ -21,7 +21,7 @@
     <dependencies>
         <dependency>
             <groupId>org.enroy</groupId>
-            <artifactId>java2ts-starter</artifactId>
+            <artifactId>java2ts-spring-boot-starter</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

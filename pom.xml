@@ -11,7 +11,7 @@
     <modules>
         <module>java2ts-core</module>
         <module>java2ts-sampler</module>
-        <module>java2ts-starter</module>
+        <module>java2ts-spring-boot-starter</module>
     </modules>
 
     <scm>
