@@ -1,0 +1,111 @@
+= java转ts
+
+本项目旨在为提供一个自动生成前端http访问模型的能力，通过扫描后端服务接口进行前端代码生成。
+
+当前仅支持springMVC注解扫描，进行ts格式数据模型生成。
+
+== 源码地址
+
+https://gitee.com/enroy/java2ts.git[github]
+
+https://gitee.com/enroy/java2ts.git[gitee]
+
+== 使用说明
+
+提供dmeo工程 `java2ts-sampler` 启动后运行 `src/resources` 目录下的 `download.http` 文件即可生成前端模型代码。
+
+== 配置说明
+
+[source,yaml]
+----
+java2ts:
+  enabled: # 是否启用 true or false
+  baseScanPackage: # 指定扫描的包路径
+  outputPath: # 文件输出根目录，默认值 java2ts-ui
+  apiRootPath: # 相对outputPath的api根目录，默认值 api
+  modelRootPath: # 相对outputPath的model根目录，默认值 model
+  fileExtension: # 生成的api和model的文件名拓展名，默认值 ts
+  srcPath: # src目录替代符，默认值 @
+  semicolonEnd: # import及变量定义是否以";"结尾,默认值true
+  apiClientFactoryName: # ApiClient的client名，默认值ApiClientFactory
+  apiClientInstanceMethod: # ApiClient的client名，默认值client()
+  promiseResolveReturn: # promise.then ，默认值data => return res.data
+  nullableDeclare: # 可为空对象声明，默认值 Nullable，通常在.d.ts文件中增加：declare type Nullable<T> = T | null | undefined;
+----
+
+== RuntimeExProperties[扩展功能]
+
+=== apiFilter[扫描api时，忽略指定api]
+
+[source,java]
+----
+@Configuration
+public class Java2tsConfiguration {
+    @Bean
+    public RuntimeExProperties runtimeExConfig() {
+        return RuntimeExProperties.builder()//
+                .apiFilter(TestController.class)// 扫描api时，忽略指定api
+                .build();
+    }
+}
+
+----
+
+=== entityRenameSuffix [修改模型结尾]
+
+[source,java]
+----
+@Configuration
+public class Java2tsConfiguration {
+    @Bean
+    public RuntimeExProperties runtimeExConfig() {
+        return RuntimeExProperties.builder()//
+                .entityRenameSuffix("Controller", "Api")// 修改类以Controller结尾改为以Api结尾
+                .build();
+    }
+}
+----
+
+=== entityRename [修改模型名]
+
+[source,java]
+----
+@Configuration
+public class Java2tsConfiguration {
+    @Bean
+    public RuntimeExProperties runtimeExConfig() {
+        return RuntimeExProperties.builder()//
+                .entityRename(Test.class, "MyTest")// 修改类以Controller结尾改为以Api结尾
+                .build();
+    }
+}
+----
+
+=== modelPathRule[修改包路径]
+
+[source,java]
+----
+@Configuration
+public class Java2tsConfiguration {
+    @Bean
+    public RuntimeExProperties runtimeExConfig() {
+        return RuntimeExProperties.builder()//
+                .modelPathRule((cls) -> {//
+                    Package pkg = cls.getPackage();
+                    String pkgStr = pkg == null ? "" : pkg.getName();
+                    if (pkgStr.startsWith("org.enroy.java2ts.sampler")) {
+                        return true;
+                    }
+                    return false;
+                }, (cls) -> {
+                    String pkgName = cls.getPackage().getName();
+                    int index = pkgName.indexOf("controller");
+                    if (index > -1) {
+                        return pkgName.substring(index + "controller".length() + 1);
+                    }
+                    return pkgName.substring("org.enroy.java2ts.sampler".length());
+                }) //
+                .build();
+    }
+}
+----
