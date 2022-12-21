@@ -14,6 +14,21 @@
         <module>java2ts-spring-boot-starter</module>
     </modules>
 
+    <!-- 开源许可证 -->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <!--  Issue地址  -->
+    <issueManagement>
+        <system>Gitee Issue</system>
+        <url>https://gitee.com/enroy/java2ts/issues</url>
+    </issueManagement>
+
+
     <scm>
         <connection>scm:git:${git.url}</connection>
         <developerConnection>scm:git:${git.url}</developerConnection>
