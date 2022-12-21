@@ -8,6 +8,11 @@
     <artifactId>java2ts</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
+
+    <name>java2ts</name>
+
+    <url>${git.url}</url>
+
     <modules>
         <module>java2ts-core</module>
         <module>java2ts-sampler</module>
@@ -28,6 +33,13 @@
         <url>https://gitee.com/enroy/java2ts/issues</url>
     </issueManagement>
 
+    <!-- 开发者信息 -->
+    <developers>
+        <developer>
+            <name>enroy</name>
+            <email>623788286@qq.com</email>
+        </developer>
+    </developers>
 
     <scm>
         <connection>scm:git:${git.url}</connection>
