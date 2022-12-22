@@ -87,22 +87,20 @@ public class RuntimeExProperties {
          * 修改实体后缀
          */
         public RuntimeExConfigBuilder entityRenameSuffix(String source, String target) {
-            entityRenameRule((cls) -> cls.getSimpleName().endsWith(source),//
+            return entityRenameRule((cls) -> cls.getSimpleName().endsWith(source),//
                     (cls) -> {
                         String name = cls.getSimpleName();
                         int idx = name.lastIndexOf(source);
                         return name.substring(0, idx) + target;
                     });
-            return this;
         }
 
         /**
          * 修改实体
          */
         public RuntimeExConfigBuilder entityRename(Class<?> sourceCls, String target) {
-            entityRenameRule((cls) -> sourceCls.getName().equals(cls.getName()),//
+            return entityRenameRule((cls) -> sourceCls.getName().equals(cls.getName()),//
                     (cls) -> target);
-            return this;
         }
 
 
