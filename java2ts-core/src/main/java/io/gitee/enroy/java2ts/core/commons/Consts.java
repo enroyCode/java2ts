@@ -4,7 +4,7 @@ package io.gitee.enroy.java2ts.core.commons;
  * chaos
  */
 public class Consts {
-    public static final String CONVERTER_CONTROLLER = "org.enroy.java2ts.core.controller";
+    public static final String CONVERTER_CONTROLLER = "io.gitee.enroy.java2ts.core.controller";
     // 换行符
     public static final String ENTER = "\n";
     // 分号
