@@ -88,7 +88,12 @@ public class ApiEntityLoadResolver {
         // 注释基于swagger注解
         Api api = AnnotationUtils.findAnnotation(apiClass, Api.class);
         if (api != null) {
-            apiEntity.setNote(api.value());
+            if (StringUtils.isNotBlank(api.value())) {
+                apiEntity.setNote(api.value());
+            } else if (api.tags().length > 0) {
+                apiEntity.setNote(api.tags()[0]);
+            }
+
         }
         List<ApiMethodEntity> apiMethodEntities = buildApiMethods(methods);
         apiEntity.setMethods(apiMethodEntities);

@@ -92,7 +92,7 @@ public class ApiWriteResolver extends AbstractWriteResolver {
      */
     public void writeApi(ApiEntity api, Writer apiWriter, TypeProcessPool typeProcessPool) throws IOException {
         StringBuilder fileSb = new StringBuilder("${imports}\n" +
-                "${apiNodes}\n" +
+                "${apiNodes}" +
                 "export default class ${apiName} {\n" +
                 "${methods}" +
                 "\n}"
@@ -132,6 +132,7 @@ public class ApiWriteResolver extends AbstractWriteResolver {
     private void processApiNote(ApiEntity api, StringBuilder apiNoteSb) {
         if (StringUtils.isNotBlank(api.getNote())) {
             apiNoteSb.append(notes(0, true, api.getNote()));
+            apiNoteSb.append(Consts.ENTER);
         }
     }
 
@@ -164,106 +165,121 @@ public class ApiWriteResolver extends AbstractWriteResolver {
 
     private Map<String, String> processApiMethod(ApiMethodEntity method, String apiPath, StringBuilder methodsSb, TypeProcessPool importsClassPool) {
         Map<String, String> paramsNote = new LinkedHashMap<>();
-        StringBuilder methodSb = new StringBuilder("\n\tstatic ${methodName}(${params}): Promise<${returnType}> {\n"//
+        StringBuilder methodSb = new StringBuilder("\n\tstatic ${methodName}(${methodParam}): Promise<${returnType}> {\n"//
                 + "${client}\n" //
                 + "\t}\n");//
         // 方法名
         replace(methodSb, "${methodName}", method.getName());
 
         // builder
-        StringBuilder paramSb = new StringBuilder();
-        StringBuilder clientSb = new StringBuilder();
-        StringBuilder returnSb = new StringBuilder();
+        StringBuilder methodParamSb = new StringBuilder();
+        StringBuilder returnTypeSb = new StringBuilder();
+        StringBuilder clientDetailSb = new StringBuilder("\t\treturn ${api}.${httpMethod}(${clientParams}).then((res) => {\n\t\t\treturn ${promiseResolveReturn}\n\t\t})");
 
+        StringBuilder clientParamsSb = new StringBuilder();
+        StringBuilder apiSb = new StringBuilder();
+        apiSb.append(config.getApiClientFactoryName());
+        if (StringUtils.isNotBlank(config.getApiClientInstanceMethod())) {
+            apiSb.append(Consts.PERIOD).append(config.getApiClientInstanceMethod());
+        }
         // 构造请求客户端
-        clientSb.append(String.format("\t\treturn %s.%s", config.getApiClientFactoryName(), config.getApiClientInstanceMethod()));
-        //构造请求方法+请求路径
-        clientSb.append(String.format(".%s(`%s`", method.getRequestMethod().toLowerCase(), (apiPath + "/" + method.getPath()).replace("//", "/")));
-        boolean hasParamComma = false;// paramSb是否存在逗号
-        boolean hasClientComma = false;// ClientSb是否存在逗号
-
-        clientSb.append(", {");
-        List<TypeParameter> notRequired = new ArrayList<>();//对于ts来说，方法名不可以重复，非必填参数往后放
+        replace(clientDetailSb, "${api}", apiSb);
+        // 构造请求方法
+        replace(clientDetailSb, "${httpMethod}", method.getRequestMethod().toLowerCase());
+        // 请求路径
+        clientParamsSb.append(String.format("`%s`,", (apiPath + "/" + method.getPath()).replace("//", "/")));
+        boolean methodParamEndWithComma = false;// methodParamSb是否存在逗号结尾
+        boolean clientParamEndWithComma = false;// clientParam是否存在逗号结尾
+        boolean mayHasBody = method.mayHasBody();
+        boolean hasConfigParams = method.hasConfigParams();
+        List<TypeParameter> notRequired = new ArrayList<>();//对于ts来说，方法名不可以重复
         // 处理path参数
         if (!CollectionUtils.isEmpty(method.getPaths())) {
-            hasParamComma = true;
+            methodParamEndWithComma = true;
             for (TypeParameter parameter : method.getPaths()) {
                 if (parameter.isRequired()) {
-                    encodeParam(parameter, paramSb, paramsNote, importsClassPool);
+                    encodeMethodParam(parameter, methodParamSb, paramsNote, importsClassPool);
                 } else {
                     notRequired.add(parameter);
                 }
-            }
-        }
-        // 处理header参数
-        if (!CollectionUtils.isEmpty(method.getHeaders())) {
-            hasParamComma = true;
-            hasClientComma = true;
-            clientSb.append("\n\t\t\theaders: {");
-            for (TypeParameter parameter : method.getHeaders()) {
-                clientSb.append(String.format("\n\t\t\t\t%s: %s,", parameter.getName(), parameter.getName()));
-                if (parameter.isRequired()) {
-                    encodeParam(parameter, paramSb, paramsNote, importsClassPool);
-                } else {
-                    notRequired.add(parameter);
-                }
-                clientSb.delete(clientSb.length() - 1, clientSb.length());//去除最后的逗号
-                clientSb.append("\n\t\t\t},");
-            }
-        }
-        // 处理query参数
-        if (!CollectionUtils.isEmpty(method.getQueries())) {
-            hasParamComma = true;
-            hasClientComma = true;
-            clientSb.append("\n\t\t\tparams: {");
-            for (TypeParameter parameter : method.getQueries()) {
-                clientSb.append(String.format("\n\t\t\t\t%s: %s,", parameter.getName(), parameter.getName()));
-                if (parameter.isRequired()) {
-                    encodeParam(parameter, paramSb, paramsNote, importsClassPool);
-                } else {
-                    notRequired.add(parameter);
-                }
-                clientSb.delete(clientSb.length() - 1, clientSb.length());
-                clientSb.append("\n\t\t\t},");
             }
         }
         // 处理body参数
-        if (method.mayHasBody()) {
+        if (mayHasBody) {
             if (method.getBody() != null) {
-                hasParamComma = true;
+                methodParamEndWithComma = true;
+                clientParamEndWithComma = true;
                 TypeParameter parameter = method.getBody();
                 parameter.setName("body");
-                encodeParam(parameter, paramSb, paramsNote, importsClassPool);
-                clientSb.append(", body");
+                encodeMethodParam(parameter, methodParamSb, paramsNote, importsClassPool);
+                clientParamsSb.append(Consts.SPACE).append(parameter.getName()).append(Consts.COMMA);
             } else {
-                clientSb.append(", {}");
+                clientParamsSb.append("null");
             }
+        }
+        if (hasConfigParams) {
+            clientParamsSb.append(" {");
+            // 处理header参数
+            if (!CollectionUtils.isEmpty(method.getHeaders())) {
+                methodParamEndWithComma = true;
+                clientParamEndWithComma = true;
+                clientParamsSb.append("\n\t\t\theaders: {");
+                for (TypeParameter parameter : method.getHeaders()) {
+                    clientParamsSb.append(String.format("\n\t\t\t\t%s: %s,", parameter.getName(), parameter.getName()));
+                    if (parameter.isRequired()) {
+                        encodeMethodParam(parameter, methodParamSb, paramsNote, importsClassPool);
+                    } else {
+                        notRequired.add(parameter);
+                    }
+                    clientParamsSb.delete(clientParamsSb.length() - 1, clientParamsSb.length());//去除最后的逗号
+                    clientParamsSb.append("\n\t\t\t},");
+                }
+            }
+            // 处理query参数
+            if (!CollectionUtils.isEmpty(method.getQueries())) {
+                methodParamEndWithComma = true;
+                clientParamEndWithComma = true;
+                clientParamsSb.append("\n\t\t\tparams: {");
+                for (TypeParameter parameter : method.getQueries()) {
+                    clientParamsSb.append(String.format("\n\t\t\t\t%s: %s,", parameter.getName(), parameter.getName()));
+                    if (parameter.isRequired()) {
+                        encodeMethodParam(parameter, methodParamSb, paramsNote, importsClassPool);
+                    } else {
+                        notRequired.add(parameter);
+                    }
+                    clientParamsSb.delete(clientParamsSb.length() - 1, clientParamsSb.length());
+                    clientParamsSb.append("\n\t\t\t},");
+                }
+            }
+            if (clientParamEndWithComma) {
+                clientParamsSb.delete(clientParamsSb.length() - 1, clientParamsSb.length());
+            }
+            clientParamsSb.append("\n\t\t}");
+        } else {
+            clientParamsSb.append(" {}");
         }
         //处理非必填参数
         for (TypeParameter parameter : notRequired) {
-            encodeParam(parameter, paramSb, paramsNote, importsClassPool);
+            encodeMethodParam(parameter, methodParamSb, paramsNote, importsClassPool);
         }
-        if (hasParamComma) {//存在形参，那么需要去掉encodeParam的最后的", "
-            paramSb.delete(paramSb.length() - 2, paramSb.length());
+        if (methodParamEndWithComma) {//存在形参，那么需要去掉encodeParam的最后的", "
+            methodParamSb.delete(methodParamSb.length() - 2, methodParamSb.length());
         }
-        replace(methodSb, "${params}", paramSb);
+        replace(methodSb, "${methodParam}", methodParamSb);
         // 返回值
-        encodeReturnType(method.getRtnType(), returnSb, importsClassPool);
-        replace(methodSb, "${returnType}", returnSb);
-        if (hasClientComma) {
-            clientSb.delete(clientSb.length() - 1, clientSb.length());
-        }
+        encodeReturnType(method.getRtnType(), returnTypeSb, importsClassPool);
+        replace(methodSb, "${returnType}", returnTypeSb);
 
         // client
-        clientSb.append("\n\t\t}).then((res) => {")//
-                .append("\n\t\t\treturn res");
-        if (StringUtils.isNotBlank(config.getPromiseResolveReturn())) {
-            clientSb.append(Consts.PERIOD).append(config.getPromiseResolveReturn());//
-        }
+//        clientDetailSb.append("\n\t\t}).then((res) => {")//
+//                .append("\n\t\t\treturn res");
+        replace(clientDetailSb, "${promiseResolveReturn}", StringUtils.isNotBlank(config.getPromiseResolveReturn()) ? "res." + config.getPromiseResolveReturn() : "res");
 
-        clientSb.append("\n\t\t})");
+//        clientDetailSb.append("\n\t\t})");
 
-        replace(methodSb, "${client}", clientSb);
+        replace(clientDetailSb, "${clientParams}", clientParamsSb);
+
+        replace(methodSb, "${client}", clientDetailSb);
         // 写入
         methodsSb.append(methodSb);
         return paramsNote;
@@ -274,13 +290,14 @@ public class ApiWriteResolver extends AbstractWriteResolver {
         returnSb.append(tsType);
     }
 
-    private void encodeParam(TypeParameter parameter, StringBuilder paramSb, Map<String, String> paramNote, TypeProcessPool importsClassPool) {
+    /**
+     * 处理api.method上的参数
+     */
+    private void encodeMethodParam(TypeParameter parameter, StringBuilder paramSb, Map<String, String> paramNote, TypeProcessPool importsClassPool) {
         // 获取java类型与ts类型的对应关系
         String tsType = config.getJavaTypeResolver().java2TsType(parameter.getType(), importsClassPool);
         paramSb.append(String.format("%s: %s, ", parameter.getName() + (parameter.isRequired() ? "" : "?"), tsType));
-        if (StringUtils.isNotBlank(parameter.getNote())) {
-            paramNote.put(parameter.getName(), parameter.getNote());
-        }
+        paramNote.put(parameter.getName(), StringUtils.isNotBlank(parameter.getNote()) ? parameter.getNote() : "");
     }
 
     private void preProcessMethodNote(ApiMethodEntity method, StringBuilder sb) {

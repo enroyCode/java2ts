@@ -49,8 +49,9 @@ public class ModelEntityLoadResolver {
                 model.setNote(apiModel.value());
             }
             Field[] fields = cls.getDeclaredFields();
+            Object instance = getClassInstance(cls);
             for (Field field : fields) {
-                TypeParameter typeParameter = buildFromField(cls, field);
+                TypeParameter typeParameter = buildFromField(cls, field, instance);
                 if (typeParameter == null) {
                     continue;
                 }
@@ -77,7 +78,7 @@ public class ModelEntityLoadResolver {
         return null;
     }
 
-    public TypeParameter buildFromField(Class<?> cls, Field field) {
+    private TypeParameter buildFromField(Class<?> cls, Field field, Object instance) {
         int mod = field.getModifiers();
         boolean isEnum = cls.isEnum();
         if (isEnum) {
@@ -91,8 +92,11 @@ public class ModelEntityLoadResolver {
         // 获取
         typeField.setType(field.getGenericType());
         typeField.setName(field.getName());
-        Method readMethod = getReadMethod(cls, field);
 
+        Method readMethod = getReadMethod(cls, field);
+        if (instance != null && !isEnum) {
+            typeField.setDft(getDefaultValue(readMethod, instance));
+        }
         ApiModelProperty apiModelProperty = getAnnotationByFieldOrReadMethod(cls, field, readMethod, ApiModelProperty.class);
         if (apiModelProperty != null) {
             String value = apiModelProperty.value();
@@ -123,6 +127,29 @@ public class ModelEntityLoadResolver {
         return typeField;
     }
 
+    private Object getClassInstance(Class<?> cls) {
+        try {
+            if (!cls.isEnum()) {
+                return cls.newInstance();
+            }
+        } catch (Exception e) {
+            log.warn("newInstance 失败：" + e.getMessage());
+        }
+        return null;
+    }
+
+    private Object getDefaultValue(Method readMethod, Object obj) {
+        try {
+            return readMethod.invoke(obj);
+        } catch (Exception e) {
+            log.warn("获取默认值失败：" + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 获取读方法
+     */
     private Method getReadMethod(Class<?> cls, Field field) {
         if (!cls.isEnum()) {
             String readMethodName = (field.getType() == boolean.class ? "is" : "get") + first2Upper(field.getName());
@@ -138,7 +165,7 @@ public class ModelEntityLoadResolver {
     /**
      * 从字段或者read方法上获取指定注解
      */
-    public <A extends Annotation> A getAnnotationByFieldOrReadMethod(Class<?> cls, Field field, Method readMethod, Class<A> annotationType) {
+    private <A extends Annotation> A getAnnotationByFieldOrReadMethod(Class<?> cls, Field field, Method readMethod, Class<A> annotationType) {
         A annotation = AnnotationUtils.getAnnotation(field, annotationType);
         if (annotation == null) {
             if (readMethod == null || cls.isEnum()) {

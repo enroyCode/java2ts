@@ -17,6 +17,10 @@ public class Consts {
     public static final String APOSTROPHE = "'";
 
     public static final String PERIOD = ".";
+
+    public static final String SPACE = " ";
+
+    public static final String COMMA = ",";
     // 分号+换行符
     public static final String SEMICOLON_END_ENTER = SEMICOLON + ENTER;
 }

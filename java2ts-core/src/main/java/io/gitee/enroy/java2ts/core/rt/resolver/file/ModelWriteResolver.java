@@ -60,7 +60,7 @@ public class ModelWriteResolver extends AbstractWriteResolver {
 
     private void write(ModelEntity model, Writer writer, TypeProcessPool collector)
             throws IOException {
-        StringBuilder modelSb = new StringBuilder("${imports}\n" + //
+        StringBuilder modelSb = new StringBuilder("${imports}" + //
                 "${modelNote}" + //
                 "${modelClass}" +//
                 "\n}");
@@ -151,7 +151,7 @@ public class ModelWriteResolver extends AbstractWriteResolver {
                 if (tsType.contains("[]")) {//数组、list集合
                     modelClassSb.append(String.format("\t%s: %s = %s", parameter.getName(), tsType, "[]"));
                 } else {
-                    Class<?> cls = ClassUtil.getTypeClass(type);
+                    Class<?> cls = ClassUtil.getTypeClass(parameter.getType());
                     if (cls == null) {
                         modelClassSb.append(String.format("\t%s: %s<%s>", parameter.getName(), config.getNullableDeclare(), tsType));
                     } else {

@@ -2,6 +2,7 @@ package io.gitee.enroy.java2ts.core.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -71,5 +72,12 @@ public class ApiMethodEntity implements Comparable<ApiMethodEntity> {
      */
     public boolean mayHasBody() {
         return requestMethod.equals(METHOD_POST) || requestMethod.equals(METHOD_PUT);
+    }
+
+    /**
+     * http请求中是否存在config参数
+     */
+    public boolean hasConfigParams() {
+        return !CollectionUtils.isEmpty(headers) && !CollectionUtils.isEmpty(queries);
     }
 }
