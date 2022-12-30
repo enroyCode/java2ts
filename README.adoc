@@ -19,7 +19,7 @@ https://gitee.com/enroy/java2ts.git[gitee]
 [source,xml]
 ----
 <dependency>
-    <groupId>org.enroy</groupId>
+    <groupId>io.gitee.enroy</groupId>
     <artifactId>java2ts-spring-boot-starter</artifactId>
     <version>${java2ts-spring-boot-starter.version}</version>
 </dependency>
@@ -86,7 +86,7 @@ public class Java2tsConfiguration {
     @Bean
     public RuntimeExProperties runtimeExConfig() {
         return RuntimeExProperties.builder()//
-                .entityRename(Test.class, "MyTest")// 修改类以Controller结尾改为以Api结尾
+                .entityRename(Test.class, "MyTest")// 修改类名
                 .build();
     }
 }
@@ -104,7 +104,7 @@ public class Java2tsConfiguration {
                 .modelPathRule((cls) -> {//
                     Package pkg = cls.getPackage();
                     String pkgStr = pkg == null ? "" : pkg.getName();
-                    if (pkgStr.startsWith("org.enroy.java2ts.sampler")) {
+                    if (pkgStr.startsWith("io.gitee.enroy.java2ts.sampler")) {
                         return true;
                     }
                     return false;
@@ -114,9 +114,72 @@ public class Java2tsConfiguration {
                     if (index > -1) {
                         return pkgName.substring(index + "controller".length() + 1);
                     }
-                    return pkgName.substring("org.enroy.java2ts.sampler".length());
+                    return pkgName.substring("io.gitee.enroy.java2ts.sampler".length());
                 }) //
                 .build();
     }
 }
+----
+
+=== ApiClientFactory样本文件
+
+[source,typescript]
+----
+import axios, {AxiosInstance} from 'axios/index';
+axios.defaults.timeout = 10000;
+
+export default class ApiClientFactory {
+  /**
+   *
+   */
+  public static client() {
+    // 可以在这里拦截
+    return this.getNewInstance('');
+  }
+
+  public static getNewInstance(baseUrl: string): AxiosInstance {
+    const instance = axios.create({
+      baseURL: baseUrl,
+    }) as AxiosInstance;
+    this.interceptors(instance);
+    return instance;
+  }
+
+  public static interceptors(instance: AxiosInstance) {
+    // 请求拦截器
+    instance.interceptors.request.use(function (config) {
+      config.headers = ApiClientFactory.getHeaders();
+      return config;
+    }, function (error: any) {
+      return Promise.reject(error);
+    });
+    // 响应拦截器
+    instance.interceptors.response.use(function (response) {
+    }, function (error) {
+      if (error.response && error.response.status) {
+        if (error.response.status === 502) {
+          error.message = '请检查网络设置';
+          return Promise.reject(error);
+        }
+        if (error.response.status === 503) {
+          error.message = '服务升级中，请稍后再试';
+          return Promise.reject(error);
+        }
+        if (error.response.status === 401) {
+          // FIXME 401通常有重定向到登录页机制
+          return Promise.reject(error);
+        }
+      }
+      return Promise.reject(error.response.data);
+    });
+  }
+
+  public static getHeaders() {
+    return {
+      'x-requested-with': 'XMLHttpRequest',
+      'content-type': 'application/json',
+    } as any;
+  }
+}
+
 ----

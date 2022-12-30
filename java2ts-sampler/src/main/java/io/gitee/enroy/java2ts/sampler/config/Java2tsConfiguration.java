@@ -16,7 +16,7 @@ public class Java2tsConfiguration {
                 .modelPathRule((cls) -> {//
                     Package pkg = cls.getPackage();
                     String pkgStr = pkg == null ? "" : pkg.getName();
-                    if (pkgStr.startsWith("org.enroy.java2ts.sampler")) {
+                    if (pkgStr.startsWith("io.gitee.enroy.java2ts.sampler")) {
                         return true;
                     }
                     return false;
@@ -26,7 +26,7 @@ public class Java2tsConfiguration {
                     if (index > -1) {
                         return pkgName.substring(index + "controller".length() + 1);
                     }
-                    return pkgName.substring("org.enroy.java2ts.sampler".length());
+                    return pkgName.substring("io.gitee.enroy.java2ts.sampler".length());
                 }) //
                 .entityRenameSuffix("Controller", "Api")// 修改类以Controller结尾改为以Api结尾
                 .build();
