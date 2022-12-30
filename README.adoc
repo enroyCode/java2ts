@@ -44,9 +44,9 @@ java2ts:
   nullableDeclare: # 可为空对象声明，默认值 Nullable，通常在.d.ts文件中增加：declare type Nullable<T> = T | null | undefined;
 ----
 
-== RuntimeExProperties[扩展功能]
+== RuntimeExProperties [扩展功能]
 
-=== apiFilter[扫描api时，忽略指定api]
+=== apiFilter [扫描api时，忽略指定api]
 
 [source,java]
 ----
@@ -92,7 +92,7 @@ public class Java2tsConfiguration {
 }
 ----
 
-=== modelPathRule[修改包路径]
+=== modelPathRule [修改包路径]
 
 [source,java]
 ----
