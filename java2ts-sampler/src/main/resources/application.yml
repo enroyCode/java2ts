@@ -3,4 +3,4 @@ server:
 
 java2ts:
   enabled: true
-  baseScanPackage: com.enroy.java2ts.sampler
+  baseScanPackage: "io.gitee.enroy.java2ts.sampler"

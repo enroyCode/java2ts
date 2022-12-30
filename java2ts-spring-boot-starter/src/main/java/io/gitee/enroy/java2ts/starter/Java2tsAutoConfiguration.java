@@ -16,7 +16,7 @@ import org.springframework.context.annotation.ComponentScan;
 public class Java2tsAutoConfiguration {
 
     @Bean
-    @ConfigurationProperties(prefix = Java2TsProperties.PREFIX)
+    @ConfigurationProperties(Java2TsProperties.PREFIX)
     public Java2TsProperties java2TsProperties() {
         return new Java2TsProperties();
     }

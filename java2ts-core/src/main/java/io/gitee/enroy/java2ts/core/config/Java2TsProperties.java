@@ -10,6 +10,7 @@ import lombok.Data;
 public class Java2TsProperties {
     public static final String PREFIX = "java2ts";
     public static final String ENABLE = PREFIX + ".enabled";
+
     /**
      * 是否开启,用于Java2tsAutoConfiguration
      */
