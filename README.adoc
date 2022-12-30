@@ -126,6 +126,7 @@ public class Java2tsConfiguration {
 [source,typescript]
 ----
 import axios, {AxiosInstance} from 'axios/index';
+import {AxiosRequestConfig, AxiosResponse} from 'axios';
 axios.defaults.timeout = 10000;
 
 export default class ApiClientFactory {
@@ -147,14 +148,21 @@ export default class ApiClientFactory {
 
   public static interceptors(instance: AxiosInstance) {
     // 请求拦截器
-    instance.interceptors.request.use(function (config) {
+    instance.interceptors.request.use(function (config: AxiosRequestConfig) {
       config.headers = ApiClientFactory.getHeaders();
       return config;
     }, function (error: any) {
       return Promise.reject(error);
     });
     // 响应拦截器
-    instance.interceptors.response.use(function (response) {
+    instance.interceptors.response.use(function (response: AxiosResponse) {
+      if (response.data.errcode == '0') {
+        return response.data;
+      } else {
+        let error = new Error();
+        (error as any).response = response.data;
+        throw error;
+      }
     }, function (error) {
       if (error.response && error.response.status) {
         if (error.response.status === 502) {
