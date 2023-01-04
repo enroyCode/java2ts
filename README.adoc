@@ -6,7 +6,7 @@
 
 == 源码地址
 
-https://gitee.com/enroy/java2ts.git[github]
+https://github.com/enroyCode/java2ts.git[github]
 
 https://gitee.com/enroy/java2ts.git[gitee]
 
