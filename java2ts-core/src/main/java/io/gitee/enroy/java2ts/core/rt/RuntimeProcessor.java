@@ -35,7 +35,6 @@ public class RuntimeProcessor {
     private String apiClientFactoryName;
     private String apiClientInstanceMethod;
     private String promiseResolveReturn;
-
     private String nullableDeclare;
 
     private List<Predicate<Class<?>>> apiFilters;

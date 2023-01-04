@@ -30,7 +30,7 @@ public class JavaTypeResolver {
             return "any";
         }
         if (type instanceof Class) {//普通类型
-            Class cls = (Class) type;
+            Class<?> cls = (Class<?>) type;
             if (cls.isArray()) {//处理数组
                 String tsType = java2TsType(cls.getComponentType(), importsClassPool);
                 return tsType + "[]";

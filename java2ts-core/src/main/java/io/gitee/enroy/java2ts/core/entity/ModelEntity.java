@@ -37,4 +37,11 @@ public class ModelEntity extends Java2TsEntity {
         super(type);
     }
 
+
+    @Override
+    public String toString() {
+        return "ModelEntity{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }

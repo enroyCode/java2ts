@@ -44,7 +44,7 @@ public class DefaultValueResolver {
             return null;
         }
         if (cls.isEnum()) {
-            return defaultValue == null ? null : name + Consts.PERIOD + defaultValue.toString();
+            return defaultValue == null ? null : name + Consts.PERIOD + defaultValue;
         }
         return "new " + name + "()";
     }

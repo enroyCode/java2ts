@@ -164,11 +164,11 @@ public class ModelWriteResolver extends AbstractWriteResolver {
                     }
                 }
             } else {//非必填
-                if (tsType.contains("[]")) {
-                    modelClassSb.append(String.format("\t%s: %s", parameter.getName(), tsType));
-                } else {
-                    modelClassSb.append(String.format("\t%s: %s<%s>", parameter.getName(), config.getNullableDeclare(), tsType));
-                }
+//                if (tsType.contains("[]")) {
+//                    modelClassSb.append(String.format("\t%s: %s", parameter.getName(), tsType));
+//                } else {
+                modelClassSb.append(String.format("\t%s: %s<%s>", parameter.getName(), config.getNullableDeclare(), tsType));
+//                }
             }
             if (config.isSemicolonEnd()) {
                 modelClassSb.append(";");
