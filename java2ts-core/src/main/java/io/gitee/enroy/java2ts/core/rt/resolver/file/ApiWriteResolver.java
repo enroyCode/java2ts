@@ -157,7 +157,12 @@ public class ApiWriteResolver extends AbstractWriteResolver {
         } else {
             StringBuilder notesSb = new StringBuilder();
             for (Map.Entry<String, String> noteEntry : paramNotes.entrySet()) {
-                notesSb.append(Consts.ENTER).append(Consts.TAB).append(" * ").append(String.format("@param %s %s", noteEntry.getKey(), noteEntry.getValue()));
+                String param = "@param " + noteEntry.getKey();
+                if (StringUtils.isNotBlank(noteEntry.getValue())) {
+                    param += Consts.SPACE;
+                }
+                param += noteEntry.getValue();
+                notesSb.append(Consts.ENTER).append(Consts.TAB).append(" * ").append(param);
             }
             replace(methodsSb, "${paramNote}", notesSb);
         }
