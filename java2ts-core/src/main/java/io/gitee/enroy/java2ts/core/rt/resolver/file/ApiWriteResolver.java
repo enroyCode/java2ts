@@ -109,7 +109,7 @@ public class ApiWriteResolver extends AbstractWriteResolver {
         for (ApiMethodEntity method : api.getMethods()) {
             // 预处理处理method注释
             preProcessMethodNote(method, methodsSb);
-            // 写入方法
+            // 写入方法，返回参数注释
             Map<String, String> paramNotes = processApiMethod(method, apiPath, methodsSb, methodTypePool);
             //处理method参数注释
             processMethodParamNotes(method, paramNotes, methodsSb);
@@ -304,9 +304,9 @@ public class ApiWriteResolver extends AbstractWriteResolver {
         String note;
         String paramStart = "${paramNote}";
         if (method.isDeprecated()) {
-            note = notes(1, false, method.getNote(), paramStart, "@deprecated 已废弃");
+            note = notes(1, true, method.getNote(), paramStart, "@deprecated 已废弃");
         } else {
-            note = notes(1, false, method.getNote(), paramStart);
+            note = notes(1, true, method.getNote(), paramStart);
         }
         sb.append("\n").append(note);
     }
