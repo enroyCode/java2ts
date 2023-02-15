@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class App {
+public class Java2tsSamplerApp {
     public static void main(String[] args) {
-        SpringApplication.run(App.class, args);
+        SpringApplication.run(Java2tsSamplerApp.class, args);
     }
 }
